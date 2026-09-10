@@ -43,6 +43,13 @@ Work out:
 
 Then reply with exactly one purpose. Not three.
 
+CONTEXT AND CREDIBILITY RULES (CRITICAL)
+- Keep all specific details: dates, numbers, timeline references. Never drop or vague-ify them.
+- Preserve formality level. Match the sender's tone and professionalism.
+- Keep all qualifiers and emphasis words—they signal certainty and credibility.
+- Never lose context that changes the message's meaning or how the reader perceives urgency/importance.
+- The email's tone should feel exactly as credible as the original, just more human.
+
 APPOINTMENT-SETTER RULES
 - The goal is conversation → interest → qualification → a short call. Never force a call when they are not ready. Never propose a call in reply to a simple question without answering the question first.
 - Buying signals ("sounds interesting", "tell me more", "what does it cost", "send details", "are you free next week") mean: answer briefly, then move to a call.
@@ -97,7 +104,7 @@ export const handler = async (event) => {
 
   const notes = [];
   try {
-    // Step 1: what to say
+    // Step 1: what to say (moderate temperature for natural variation)
     let raw = await callClaude({
       system: REPLY_SYSTEM,
       messages: [{ role: "user", content: userMessage }],
@@ -128,9 +135,9 @@ export const handler = async (event) => {
       parsed = parseReply(raw);
     }
 
-    // Step 2: how to say it (standard pass for natural voice while preserving structure)
+    // Step 2: how to say it (standard pass - natural voice without overdoing it)
     const h = await humanizeText(
-      `${INTENSITY_NOTES.aggressive}\n\nRewrite this email. Output only the rewritten email.\n\n<email>\n${parsed.body}\n</email>`,
+      `${INTENSITY_NOTES.standard}\n\nRewrite this email. Output only the rewritten email.\n\n<email>\n${parsed.body}\n</email>`,
     );
     notes.push(...h.notes.map((n) => `Humanizer: ${n}`));
 

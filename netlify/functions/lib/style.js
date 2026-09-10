@@ -65,12 +65,6 @@ HARD RULES (never break these):
 10. Never invent "extra things done for free" that didn't actually happen.
 11. Never fabricate awards, publications, or credentials that haven't been verified as real.
 
-CRITICAL BURSTINESS - NO EXCEPTIONS:
-- Never let three consecutive sentences have similar lengths
-- Sentence 1: 2-5 words. Sentence 2: 15-25 words. Sentence 3: 4-8 words.
-- The rhythm itself is the disguise. Break every pattern.
-- If you see repetitive structure, you failed.
-
 CLOSING:
 - End with a bold, confident call to action that assumes the close.
 - No soft asks like "let me know if you have questions."
@@ -78,15 +72,23 @@ CLOSING:
 
 export const HUMANIZER_SYSTEM = `You are David Wilder, rewriting emails in his distinctive voice before sending them. You are not a copywriter fixing grammar. You are the person who sent the email, making sure it sounds like you—confident, optimistic, distinctly human—not like an AI assistant or a template.
 
-CRITICAL BURSTINESS REQUIREMENT:
-Use extreme sentence length variation (mix 2-4 word sentences with 15-25 word ones). This rhythm is how real confident people write—never flat, never formal, never mechanical. Vary hard.
+PRESERVE CONTEXT (CRITICAL):
+- Keep all specific details: dates, numbers, timing words ("a bit ago", "just now", "yesterday")
+- Never change formality level. If the original is formal, keep it formal. If casual, keep it casual.
+- Preserve all qualifiers: "very much", "genuinely", "consistently", "actively"
+- Never drop important context that changes the message's meaning or credibility
+- Keep the emphasis and tone—don't make it sound less (or more) urgent/important than it is
 
-Example rhythm: "We can do this. Our system is built specifically for companies like yours that are tired of watching revenue slip through the cracks. Done."
+KEYWORD DIVERSITY:
+If any word appears 4+ times, replace some with synonyms or restructure to avoid repetition. Real people vary their word choice naturally. AI tends to repeat the same words.
+
+NATURAL BURSTINESS (not forced):
+Vary sentence length naturally. Mix short sentences with longer ones, but only where it makes sense for the content. The goal is natural rhythm that flows, not artificial alternation. Real confident people vary rhythm organically based on what they're saying, not mechanically.
 
 ${STYLE_RULES}
 - Keep it as short as the original or shorter. Never longer.
 - Sound like one specific person, not a brand. Small imperfections are fine. Perfect polish is not.
-- Rhythm matters more than perfection. Short sentence. Long sentence. Short sentence again. Vary relentlessly.`;
+- Use contractions. Varied sentence rhythm. Natural, not mechanical. This removes AI patterns without creating detectable artificial variation.`;
 
 export const INTENSITY_NOTES = {
   light:
@@ -107,7 +109,33 @@ export function hardRuleViolations(text) {
   if (/\bhey\b/i.test(first.trim()))
     v.push('greeting uses "hey" (use "Hi" or "Hello" instead)');
 
-  // Banned AI phrases (exact matches or common variations)
+  // Detect repetitive keyword usage (words appearing 4+ times)
+  const words = text.toLowerCase().match(/\b[a-z]{4,}\b/g) || [];
+  const wordCounts = {};
+  words.forEach((w) => {
+    wordCounts[w] = (wordCounts[w] || 0) + 1;
+  });
+  const repetitiveWords = Object.entries(wordCounts).filter(
+    ([w, c]) =>
+      c >= 4 &&
+      ![
+        "that",
+        "this",
+        "have",
+        "their",
+        "will",
+        "just",
+        "your",
+        "been",
+        "from",
+      ].includes(w),
+  );
+  if (repetitiveWords.length > 2)
+    v.push(
+      "has repetitive keyword usage (replace some repeated words with synonyms)",
+    );
+
+  // Banned AI phrases (with flexible matching to catch variations)
   const bannedPhrases = [
     "i hope this (email )?finds you well",
     "i wanted to reach out",
@@ -120,13 +148,16 @@ export function hardRuleViolations(text) {
     "my name is",
     "quick question",
     "going back and forth",
-    "spot has your name on it",
+    "spot.{0,30}has.{0,30}your.{0,30}name", // Catches "spot has your name [in any form]"
     "is something i",
     "is something that",
     "reach out to me",
     "let me know if",
     "please let me know",
     "do not hesitate",
+    "genuinely regret", // Overused corporate phrase
+    "would genuinely regret",
+    "regret not reaching out",
   ];
 
   const phrasePattern = new RegExp(bannedPhrases.join("|"), "i");
