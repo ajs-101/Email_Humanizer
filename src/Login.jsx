@@ -36,8 +36,8 @@ export default function Login({ onSuccess }) {
             </svg>
           </div>
           <div>
-            <div className="brand-name">Trustpoint<span>Xposure</span></div>
-            <div className="brand-sub">AI Email Humanizer &amp; Reply Engine</div>
+            <div className="brand-name">Trustpoint<span>Xposure</span> <span className="aeo-pill">AEO Certified</span></div>
+            <div className="brand-sub">The First AEO-Certified PR Agency · AI Email Engine</div>
           </div>
         </div>
 

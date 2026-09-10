@@ -145,9 +145,10 @@ export default function Humanizer({ onLogout }) {
           <div>
             <div className="brand-name">
               Trustpoint<span>Xposure</span>
+              <span className="aeo-pill">AEO Certified</span>
             </div>
             <div className="brand-sub">
-              AI Email Humanizer &amp; Reply Engine
+              The First AEO-Certified PR Agency · AI Email &amp; Reply Engine
             </div>
           </div>
         </div>
