@@ -2,15 +2,15 @@
 // Optional env overrides: SENDER_NAME, SENDER_TITLE, BOOKING_LINK.
 
 export const COMPANY = {
-  name: "Trustpoint Xposure",
+  name: "Trustpoint Xposure & AI Search Engineers",
   website: "https://trustpointxposure.com",
   email: "contact@trustpointxposure.com",
   phone: "+1-442-220-3131",
   bookingLink: process.env.BOOKING_LINK || "",
 
   sender: {
-    name: process.env.SENDER_NAME || "Mr.AJS",
-    title: process.env.SENDER_TITLE || "COO, Trustpoint Xposure",
+    name: process.env.SENDER_NAME || "David Wilder",
+    title: process.env.SENDER_TITLE || "Trustpoint Xposure & AI Search Engineers",
   },
 
   oneLiner:

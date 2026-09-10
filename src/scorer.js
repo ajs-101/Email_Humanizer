@@ -23,6 +23,9 @@ const AI_PHRASES = [
   'let me know if you have any questions', 'if you have any questions, please',
   'excited to share', 'thrilled to', 'delighted to', 'i\'m excited', 'we are excited',
   'revolutionize', 'transform your', 'supercharge', 'skyrocket', 'boost your',
+  'here\'s the deal', 'has your name on it', 'sitting on the sidelines', 'moving fast right now',
+  'window doesn\'t stay open', 'window won\'t stay open', 'window won\'t last', 'where things actually stand',
+  'let\'s get it rolling', 'get the ball rolling', 'gone back and forth',
 ]
 
 const SPAM_WORDS = [
