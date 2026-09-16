@@ -89,32 +89,31 @@ export const handler = async (event) => {
   try {
     // Step 1: ANALYZE the meeting transcript
     notes.push('Analyzing meeting transcript...')
-    let analysisRaw = await callClaude({
+    const analysisRaw = await callClaude({
       system: ANALYSIS_SYSTEM,
-      messages: [{ role: 'user', content: `Analyze this meeting transcript:\n\n${transcript}` }],
-      maxTokens: 1500,
-      temperature: 0.7,
+      messages: [{ role: 'user', content: `Analyze this meeting transcript and provide the structured JSON insights:\n\n${transcript}` }],
+      maxTokens: 1000,
+      temperature: 0.5,
     })
 
-    let analysis = {}
-    try {
-      analysis = JSON.parse(analysisRaw)
-    } catch {
-      notes.push('Analysis parsing: extracting from text response')
-      analysis = {
-        behavior: analysisRaw,
-        painPoints: [],
-        goals: [],
-        missionValues: '',
-        objections: [],
-        buyingSignals: [],
-        tone: 'professional',
-        summary: analysisRaw
-      }
+    const parsedJson = parseJsonSafe(analysisRaw)
+    const analysis = parsedJson || {
+      behavior: stripWrappers(analysisRaw),
+      painPoints: [],
+      goals: [],
+      missionValues: '',
+      objections: [],
+      buyingSignals: [],
+      tone: 'professional',
+      summary: stripWrappers(analysisRaw)
     }
 
-    // Step 2: GENERATE follow-up email using analysis
-    notes.push('Generating follow-up email...')
+    if (!parsedJson) {
+      notes.push('Analysis parsing: extracted from text response')
+    }
+
+    // Step 2: GENERATE follow-up email directly in David Wilder voice
+    notes.push('Generating personalized follow-up email...')
     const followupPrompt = customPrompt ? `\n\nCUSTOM INSTRUCTION FROM SENDER:\n${customPrompt}` : ''
 
     const generationSystem = FOLLOWUP_SYSTEM.replace('{analysis}', JSON.stringify(analysis, null, 2))
@@ -125,12 +124,12 @@ export const handler = async (event) => {
         role: 'user',
         content: `Using the meeting analysis above, write a follow-up email to this prospect.${followupPrompt}\n\nBe specific, reference the call, and make them feel heard.`
       }],
-      maxTokens: 1200,
-      temperature: 0.75,
+      maxTokens: 1000,
+      temperature: 0.7,
     })
     let parsed = parseReply(raw)
 
-    // Check for rule violations
+    // Check for rule violations (quick fix pass only if violations exist)
     const problems = [...placeholderViolations(parsed.body), ...hardRuleViolations(parsed.body)]
     if (problems.length) {
       notes.push(`Fix pass: ${problems.join(', ')}`)
@@ -141,33 +140,39 @@ export const handler = async (event) => {
           { role: 'assistant', content: raw },
           { role: 'user', content: `Your draft has these problems: ${problems.join('; ')}. Fix only those and output the full SUBJECT / READ / BODY block again.` },
         ],
-        maxTokens: 1200,
-        temperature: 0.7,
+        maxTokens: 1000,
+        temperature: 0.6,
       })
       parsed = parseReply(raw)
     }
 
-    // Step 3: HUMANIZE the email
-    notes.push('Humanizing email...')
-    const h = await humanizeText(
-      `${INTENSITY_NOTES.standard}\n\nRewrite this email. Output only the rewritten email.\n\n<email>\n${parsed.body}\n</email>`
-    )
-    notes.push(...h.notes.map(n => `Humanizer: ${n}`))
-
-    // Never let the humanizer introduce a placeholder
-    const finalBody = placeholderViolations(h.text).length ? parsed.body : h.text
-
     return json(200, {
       subject: parsed.subject,
-      body: finalBody,
+      body: parsed.body,
       analysis,
       read: parsed.read,
       notes,
       model: MODEL
     })
   } catch (err) {
+    console.error('analyze-meeting error:', err)
     return json(502, { error: err.message || 'Claude request failed' })
   }
+}
+
+function parseJsonSafe(raw) {
+  if (!raw) return null
+  const cleaned = stripWrappers(raw)
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[0])
+    } catch {}
+  }
+  try {
+    return JSON.parse(cleaned)
+  } catch {}
+  return null
 }
 
 function parseReply(raw) {
