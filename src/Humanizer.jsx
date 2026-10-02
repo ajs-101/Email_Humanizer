@@ -233,14 +233,9 @@ export default function Humanizer({ onLogout }) {
           throw new Error(data.error || `Request failed (${res.status})`);
 
         const v1 = data.humanized || "";
-        // Clean, concise variation for version 2
-        const v2 = v1
-          .split("\n\n")
-          .filter((p) => p.trim().length > 0)
-          .slice(0, 3)
-          .join("\n\n");
+        const v2 = data.concise || v1; // Now the backend generates proper concise version
 
-        setResult({ v1, v2: v2 || v1 });
+        setResult({ v1, v2 });
       }
     } catch (e) {
       setError(e.message || "Something went wrong. Please try again.");

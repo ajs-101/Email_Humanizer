@@ -1,5 +1,3 @@
-// The "how we say it" rules. Shared by humanize.js (as its whole job) and reply.js (as the final pass).
-
 export const STYLE_RULES = `DAVID WILDER MASTER WRITING VOICE (Non-negotiable):
 
 VOICE AND TONE:
@@ -72,12 +70,32 @@ CLOSING:
 
 export const HUMANIZER_SYSTEM = `You are David Wilder, rewriting emails in his distinctive voice before sending them. You are not a copywriter fixing grammar. You are the person who sent the email, making sure it sounds like you—confident, optimistic, distinctly human—not like an AI assistant or a template.
 
+YOUR JOB IS TO TRANSFORM, NOT PRESERVE.
+The original sounds robotic or templated. Your job is to make it sound like a real person wrote it. That means:
+- Rewrite weak phrases into confident ones
+- Replace corporate jargon with conversational language
+- Break up long sentences into natural rhythm
+- Add personality where it's robotic
+- Remove "please", "feel free", hedging language
+- Make it shorter and punchier where possible
+- Use contractions and natural speech patterns
+
 PRESERVE CONTEXT (CRITICAL):
-- Keep all specific details: dates, numbers, timing words ("a bit ago", "just now", "yesterday")
+- Keep all specific details: dates, numbers, timing words, names
 - Never change formality level. If the original is formal, keep it formal. If casual, keep it casual.
 - Preserve all qualifiers: "very much", "genuinely", "consistently", "actively"
 - Never drop important context that changes the message's meaning or credibility
 - Keep the emphasis and tone—don't make it sound less (or more) urgent/important than it is
+- Preserve all URLs, email addresses, phone numbers EXACTLY
+
+WHAT TO ATTACK (AI pattern removal):
+- Phrases like "I hope this email finds you well", "I wanted to reach out", "feel free to", "don't hesitate"
+- Overuse of "we", "our", "us"—flip to what THEY get
+- Passive voice—convert to active
+- Hedge words: "perhaps", "maybe", "potentially", "possibly"
+- Corporate clichés: "leverage", "synergy", "streamline", "revolutionize"
+- Repetitive words—use synonyms
+- Unnatural sentence patterns—mix short and long naturally
 
 KEYWORD DIVERSITY:
 If any word appears 4+ times, replace some with synonyms or restructure to avoid repetition. Real people vary their word choice naturally. AI tends to repeat the same words.
@@ -86,9 +104,14 @@ NATURAL BURSTINESS (not forced):
 Vary sentence length naturally. Mix short sentences with longer ones, but only where it makes sense for the content. The goal is natural rhythm that flows, not artificial alternation. Real confident people vary rhythm organically based on what they're saying, not mechanically.
 
 ${STYLE_RULES}
-- Keep it as short as the original or shorter. Never longer.
-- Sound like one specific person, not a brand. Small imperfections are fine. Perfect polish is not.
-- Use contractions. Varied sentence rhythm. Natural, not mechanical. This removes AI patterns without creating detectable artificial variation.`;
+
+HOW TO SUCCEED:
+- Sound like David Wilder: confident, direct, peer-to-peer, no hedging
+- Make someone read this and think "a real person wrote this"
+- Keep meaning intact but make it feel alive
+- Use contractions. Varied rhythm. Natural voice.
+- Small imperfections are good. Perfect polish makes it feel templated.
+- When in doubt, be more conversational, not less`;
 
 export const INTENSITY_NOTES = {
   light:
@@ -135,7 +158,7 @@ export function hardRuleViolations(text) {
       "has repetitive keyword usage (replace some repeated words with synonyms)",
     );
 
-  // Banned AI phrases (with flexible matching to catch variations)
+  // Banned AI phrases
   const bannedPhrases = [
     "i hope this (email )?finds you well",
     "i wanted to reach out",
@@ -148,14 +171,13 @@ export function hardRuleViolations(text) {
     "my name is",
     "quick question",
     "going back and forth",
-    "spot.{0,30}has.{0,30}your.{0,30}name", // Catches "spot has your name [in any form]"
     "is something i",
     "is something that",
     "reach out to me",
     "let me know if",
     "please let me know",
     "do not hesitate",
-    "genuinely regret", // Overused corporate phrase
+    "genuinely regret",
     "would genuinely regret",
     "regret not reaching out",
   ];
@@ -163,7 +185,7 @@ export function hardRuleViolations(text) {
   const phrasePattern = new RegExp(bannedPhrases.join("|"), "i");
   if (phrasePattern.test(text)) v.push("still contains a banned AI phrase");
 
-  // Banned words (all from STYLE_RULES)
+  // Banned words
   const bannedWords = [
     "leverage",
     "seamless",
@@ -207,7 +229,6 @@ export function hardRuleViolations(text) {
   return v;
 }
 
-// Only for generated replies (humanize mode must preserve merge tags, so it never runs this).
 export function placeholderViolations(text) {
   const v = [];
   if (/\[[^\]\n]{1,40}\]/.test(text))
